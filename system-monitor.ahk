@@ -85,7 +85,7 @@ gui, systemMonitor:add, text, x+4 y7, % "MEM"
 gui, systemMonitor:Font, s9 Bold c9F9F9F, Consolas
 gui, systemMonitor:add, text, x+4 y5 +right cDDDDDD, % "Used:`nFree:"
 gui, systemMonitor:add, text, x+4 vcontrol_memUsed, % "Load "
-gui, systemMonitor:add, text, xp y+0 +right vcontrol_memFree, % "Load..."
+gui, systemMonitor:add, text, xp y+0 +right vcontrol_memFree, % "Load...."
 
 gui, systemMonitor:add, text, x+5 y6 0x7 h26 w2 ; Delimeter (MEM)
 
