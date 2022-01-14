@@ -31,12 +31,17 @@ loadColorDefault.MEM := {0: "9F9F9F", 40: "FFD700", 80: "DC4242"}
 defaultConfig := {emptyMemory: true
 				, allowMove: true
 				, alwaysOnTop: true
+				, hideTrayIcon: false
 				, positionX: "center"
 				, positionY: "center"
 				, loadColor: loadColorDefault}
 
 config := new ConfigLoader("config.json", defaultConfig)
 
+if (config.data.hideTrayIcon)
+{
+	Menu, Tray, NoIcon
+}
 
 getCPULoad()
 
