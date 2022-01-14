@@ -97,13 +97,14 @@ gui, systemMonitor:add, text, xp y+0 +center w50 vcontrol_upTime, % formatUpTime
 gui, systemMonitor:Show, % "NA x" config.data.positionX " y" config.data.positionY
 
 updateCurrentLang()
-updateMonitorInfo()
+updateDataMonitorInfo()
 
 if (EmptyMemory)
 {
 	setTimer, emptyMemory, % 7 * 60 * 1000
 }
-setTimer, updateMonitorInfo, 850
+SetTimer, updateTimeMonitorInfo, 1000
+setTimer, updateDataMonitorInfo, 850
 setTimer, updateCurrentLang, 150
 return
 
@@ -150,7 +151,22 @@ updateCurrentLang()
 	}
 }
 
-updateMonitorInfo()
+updateTimeMonitorInfo()
+{
+	; Uptime
+	upTimeData     := secondsToTime(A_TickCount // 1000) ; {days, hours, minutes, seconds}
+	upTimeFormated := formatUpTime(upTimeData)
+
+	GuiControl, systemMonitor:, control_upTime, % upTimeFormated
+
+	; Date and Time
+	FormatTime, date,, % "MMM dd, ddd"
+	FormatTime, time,, % "hh:mm:ss tt"
+
+	GuiControl, systemMonitor:, control_dateAndTime, % date "`n" time
+}
+
+updateDataMonitorInfo()
 {
 	; GPU INFO
 	gpuInfo := getGpuInfo() ; {temp, load, memory {total, avail, use, load}}
@@ -171,18 +187,6 @@ updateMonitorInfo()
 	GuiControl, % "systemMonitor:+c" getLoadColor(memoryInfo.load, "MEM") " +Redraw", control_memUsed
 	GuiControl, systemMonitor:, control_memUsed, % memoryInfo.load " %"
 	GuiControl, systemMonitor:, control_memFree, % autoByteFormat(memoryInfo.avail)
-
-	; Uptime
-	upTimeData     := secondsToTime(A_TickCount // 1000) ; {days, hours, minutes, seconds}
-	upTimeFormated := formatUpTime(upTimeData)
-
-	GuiControl, systemMonitor:, control_upTime, % upTimeFormated
-
-	; Date and Time
-	FormatTime, date,, % "MMM dd, ddd"
-	FormatTime, time,, % "hh:mm:ss tt"
-
-	GuiControl, systemMonitor:, control_dateAndTime, % date "`n" time
 }
 
 formatUpTime(upTimeData)
