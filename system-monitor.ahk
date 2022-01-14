@@ -141,7 +141,7 @@ emptyMemory()
 
 updateCurrentLang()
 {
-	static prevLangCode :=
+	static prevLangCode := ""
 
 	if (prevLangCode != (curLangCode := getCurrentLangCode()))
 	{
