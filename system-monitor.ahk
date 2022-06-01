@@ -184,6 +184,21 @@ selectSettingsItem(itemName)
 	}
 }
 
+WM_MOVING(wParam, lParam, msg, hwnd)
+{
+	static init := OnMessage(0x0216, "WM_MOVING")
+
+	pos := {left: NumGet(lParam + 0, "Int"), top: NumGet(lParam + 4, "Int"), right: NumGet(lParam + 8, "Int"), bottom: NumGet(lParam + 12, "Int")}
+
+	if (hwnd == hGuiSystemMonitor && config.data.allowMove)
+	{
+		config.data.positionX := pos.left
+		config.data.positionY := pos.top
+
+		config.save()
+	}
+}
+
 WM_RBUTTONDOWN()
 {
 	static init := OnMessage(0x0204, "WM_RBUTTONDOWN")
