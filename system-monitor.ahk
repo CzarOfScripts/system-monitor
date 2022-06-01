@@ -21,7 +21,35 @@ SetWorkingDir %A_ScriptDir%
 #Include ./library/Gui/guiControlSetText.ahk
 #Include ./library/VA.ahk
 
-onExit("scriptClose")
+
+;* Menu Tray
+menu, tray, NoStandard
+
+menu, tray, icon, shell32.dll, 22
+
+menu, contacts, Add , % "Czar Of Scripts | My site"            , authorSite
+menu, contacts, Add , % "Czar Of Scripts | I'm in VK"          , authorVK
+menu, contacts, Add , % "Czar Of Scripts | I'm on Cheat-Master", authorCM
+menu, contacts, Icon, % "Czar Of Scripts | My site"            , shell32.dll, 264
+menu, contacts, Icon, % "Czar Of Scripts | I'm in VK"          , shell32.dll, 264
+menu, contacts, Icon, % "Czar Of Scripts | I'm on Cheat-Master", shell32.dll, 264
+
+menu, tray, tip, % "System Monitor"
+menu, tray, add    , % "Empty memory"  , selectSettingsItem
+menu, tray, add    , % "Allow move"    , selectSettingsItem
+menu, tray, add    , % "Always On Top" , selectSettingsItem
+menu, tray, add    , % "Hide tray icon", selectSettingsItem
+menu, tray, add
+menu, tray, Add    , % "Contacts"      , :Contacts
+menu, tray, Icon   , % "Contacts"      , shell32.dll, 161
+menu, tray, add
+menu, tray, Add    , % "Close script"  , closeScript
+menu, tray, Icon   , % "Close script"  , shell32.dll, 132
+menu, tray, Default, % "Close script"
+
+
+
+onExit("closeScript")
 
 global config
 
@@ -40,9 +68,16 @@ defaultConfig := {emptyMemory: true
 
 config := new ConfigLoader("config.json", defaultConfig)
 
+
+menu, tray, % (config.data.emptyMemory  ? "check" : "uncheck"), % "Empty memory"
+menu, tray, % (config.data.allowMove    ? "check" : "uncheck"), % "Allow move"
+menu, tray, % (config.data.alwaysOnTop  ? "check" : "uncheck"), % "Always On Top"
+menu, tray, % (config.data.hideTrayIcon ? "check" : "uncheck"), % "Hide tray icon"
+
+
 if (config.data.hideTrayIcon)
 {
-	Menu, Tray, NoIcon
+	menu, tray, NoIcon
 }
 
 getCPULoad()
@@ -111,6 +146,50 @@ setTimer, updateCurrentLang, 150
 return
 
 
+selectSettingsItem(itemName)
+{
+	switch (itemName)
+	{
+		case "Empty memory":
+		{
+			config.data.emptyMemory := !config.data.emptyMemory
+			config.save()
+
+			menu, tray, % (config.data.emptyMemory ? "check" : "uncheck"), % itemName
+			setTimer, emptyMemory, % (config.data.emptyMemory ? 7 * 60 * 1000 : "off")
+		}
+		case "Allow move":
+		{
+			config.data.allowMove := !config.data.allowMove
+			config.save()
+
+			menu, tray, % (config.data.allowMove ? "check" : "uncheck"), % itemName
+		}
+		case "Always On Top":
+		{
+			config.data.alwaysOnTop := !config.data.alwaysOnTop
+			config.save()
+
+			menu, tray, % (config.data.alwaysOnTop ? "check" : "uncheck"), % itemName
+			gui, % "systemMonitor:" (config.data.alwaysOnTop ? "+" : "-") "AlwaysOnTop"
+		}
+		case "Hide tray icon":
+		{
+			config.data.hideTrayIcon := !config.data.hideTrayIcon
+			config.save()
+
+			menu, tray, % (config.data.hideTrayIcon ? "check" : "uncheck"), % itemName
+			menu, tray, % (config.data.hideTrayIcon ? "NoIcon" : "Icon")
+		}
+	}
+}
+
+WM_RBUTTONDOWN()
+{
+	static init := OnMessage(0x0204, "WM_RBUTTONDOWN")
+
+	menu, tray, show
+}
 
 WM_LBUTTONDOWN()
 {
@@ -226,15 +305,24 @@ getGpuInfo()
 	return gpuInfo
 }
 
-scriptClose()
+
+
+authorSite()
 {
-	Gui, systemMonitor:+LastFound
+	run, % "https://CzarOfScripts.com"
+}
 
-	WinGetPos, x, y
-	config.data.positionX := x
-	config.data.positionY := y
+authorVK()
+{
+	run, % "https://vk.com/id173241815"
+}
 
-	config.save()
+authorCM()
+{
+	run, % "https://cheat-master.ru/index/8-459193"
+}
 
+closeScript(exitReason, exitCode)
+{
 	exitApp
 }
