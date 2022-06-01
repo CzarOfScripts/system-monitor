@@ -140,7 +140,7 @@ if (EmptyMemory)
 {
 	setTimer, emptyMemory, % 7 * 60 * 1000
 }
-SetTimer, updateTimeMonitorInfo, 1000
+SetTimer, updateTimeMonitorInfo, 50
 setTimer, updateDataMonitorInfo, 850
 setTimer, updateCurrentLang, 150
 return
