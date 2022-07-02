@@ -84,7 +84,7 @@ getCPULoad()
 FormatTime, date,, % "MMM dd, ddd"
 FormatTime, time,, % "hh:mm:ss tt"
 
-gui, % "systemMonitor:-caption +ToolWindow hwndhGuiSystemMonitor +LastFound" (config.data.alwayOnTop ? "+AlwaysOnTop" : "")
+gui, % "systemMonitor:-caption +ToolWindow hwndhGuiSystemMonitor +LastFound" (config.data.alwaysOnTop ? " +AlwaysOnTop" : "")
 gui, systemMonitor:Margin, 5, 5
 gui, systemMonitor:Color, 090909, 252525
 
