@@ -6,9 +6,9 @@
 SetBatchLines, -1
 SetWorkingDir %A_ScriptDir%
 #NoEnv
-#Include ./library/Objects/objectMerge.ahk
-#Include ./library/Objects/objectClone.ahk
-#Include ./library/Class/JSON.ahk
+
+;* Includes
+#Include ./library/Others/darkTray.ahk
 #Include ./library/Class/ConfigLoader.ahk
 #Include ./library/Class/NvAPI.ahk
 #Include ./library/Memory/freeMemory.ahk
@@ -18,6 +18,7 @@ SetWorkingDir %A_ScriptDir%
 #Include ./library/Keyboard/getCurrentLangCode.ahk
 #Include ./library/Keyboard/getLangNameByCode.ahk
 #Include ./library/Others/secondsToTime.ahk
+#Include ./library/Gui/guiControlSetText.ahk
 
 onExit("scriptClose")
 
@@ -84,7 +85,7 @@ gui, systemMonitor:add, text, x+4 y7, % "MEM"
 
 gui, systemMonitor:Font, s9 Bold c9F9F9F, Consolas
 gui, systemMonitor:add, text, x+4 y5 +right cDDDDDD, % "Used:`nFree:"
-gui, systemMonitor:add, text, x+4 vcontrol_memUsed, % "Load "
+gui, systemMonitor:add, text, x+4 vcontrol_memUsed, % "LoadÂ "
 gui, systemMonitor:add, text, xp y+0 +right vcontrol_memFree, % "Load...."
 
 gui, systemMonitor:add, text, x+5 y6 0x7 h26 w2 ; Delimeter (MEM)
@@ -173,7 +174,7 @@ updateDataMonitorInfo()
 
 	GuiControl, % "systemMonitor:+c" getLoadColor(gpuInfo.load, "GPU") " +Redraw", control_gpuLoad
 	GuiControl, systemMonitor:, control_gpuLoad, % gpuInfo.load " %"
-	GuiControl, systemMonitor:, control_gpuTemp, % gpuInfo.temp "°C"
+	GuiControl, systemMonitor:, control_gpuTemp, % gpuInfo.temp "Â°C"
 
 	; CPU INFO
 	cpuLoad := Round(getCPULoad())
