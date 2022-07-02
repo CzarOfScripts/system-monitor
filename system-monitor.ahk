@@ -1,4 +1,3 @@
-; #NoTrayIcon
 #Persistent
 #SingleInstance FORCE
 #MaxThreads
@@ -53,18 +52,18 @@ onExit("closeScript")
 global config
 global hGuiSystemMonitor
 
-loadColorDefault := {}
+loadColorDefault     := {}
 loadColorDefault.GPU := {0: "9F9F9F", 40: "FFD700", 80: "DC4242"}
 loadColorDefault.CPU := {0: "9F9F9F", 40: "FFD700", 80: "DC4242"}
 loadColorDefault.MEM := {0: "9F9F9F", 40: "FFD700", 80: "DC4242"}
 
-defaultConfig := {emptyMemory: true
-				, allowMove: true
-				, alwaysOnTop: true
+defaultConfig := {emptyMemory : true
+				, allowMove   : true
+				, alwaysOnTop : true
 				, hideTrayIcon: false
-				, positionX: "center"
-				, positionY: "center"
-				, loadColor: loadColorDefault}
+				, positionX   : "center"
+				, positionY   : "center"
+				, loadColor   : loadColorDefault}
 
 config := new ConfigLoader("config.json", defaultConfig)
 
@@ -271,7 +270,7 @@ updateDataMonitorInfo()
 
 	GuiControl, % "systemMonitor:+c" getLoadColor(gpuInfo.load, "GPU") " +Redraw", control_gpuLoad
 	guiControlSetText("systemMonitor:", "control_gpuLoad", gpuInfo.load (gpuInfo.load == 100 ? "" : A_Space) "%")
-	guiControlSetText("systemMonitor:", "control_gpuTemp", gpuInfo.temp "Â°C")
+	guiControlSetText("systemMonitor:", "control_gpuTemp", gpuInfo.temp "°C")
 
 	; CPU INFO
 	cpuLoad := getCPULoad()
