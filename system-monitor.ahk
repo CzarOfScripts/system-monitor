@@ -95,7 +95,7 @@ gui, systemMonitor:add, text, x5 y7 vcontrol_lang, % "EN"
 gui, systemMonitor:add, text, x+5 y6 0x7 h26 w2 ; Delimeter (Lang)
 
 gui, systemMonitor:Font, s9 Bold c9F9F9F, Consolas
-gui, systemMonitor:add, text, x+5 y5 cDC4242 vcontrol_dateAndTime, % date "`n" time
+gui, systemMonitor:add, text, x+5 y5 w80 +center cDC4242 vcontrol_dateAndTime, % date "`n" time
 
 gui, systemMonitor:add, text, x+5 y6 0x7 h26 w2 ; Delimeter (Time)
 
@@ -104,15 +104,15 @@ gui, systemMonitor:add, text, x+4 y7, % "GPU"
 
 gui, systemMonitor:Font, s9 Bold c9F9F9F, Consolas
 gui, systemMonitor:add, text, x+4 y5 +right cDDDDDD, % "Load:`nTemp:"
-gui, systemMonitor:add, text, x+4 +right vcontrol_gpuLoad, % "Load"
-gui, systemMonitor:add, text, xp y+0 +right vcontrol_gpuTemp, % "Load"
+gui, systemMonitor:add, text, x+4    w35 +right vcontrol_gpuLoad
+gui, systemMonitor:add, text, xp y+0 w35 +right vcontrol_gpuTemp
 
 gui, systemMonitor:add, text, x+5 y6 0x7 h26 w2 ; Delimeter (GPU)
 
 gui, systemMonitor:Font, s10 Bold cDDDDDD, Consolas
-gui, systemMonitor:add, text, x+7 y4 +center, % "CPU"
+gui, systemMonitor:add, text, y4 w35 +center, % "CPU"
 gui, systemMonitor:Font, s9 Bold c9F9F9F, Consolas
-gui, systemMonitor:add, text, xp-3 y+0 +center vcontrol_cpuLoad, % "Load"
+gui, systemMonitor:add, text, y+0 w35 +center vcontrol_cpuLoad
 
 gui, systemMonitor:add, text, x+5 y6 0x7 h26 w2 ; Delimeter (CPU)
 
@@ -121,26 +121,27 @@ gui, systemMonitor:add, text, x+4 y7, % "MEM"
 
 gui, systemMonitor:Font, s9 Bold c9F9F9F, Consolas
 gui, systemMonitor:add, text, x+4 y5 +right cDDDDDD, % "Used:`nFree:"
-gui, systemMonitor:add, text, x+4 vcontrol_memUsed, % "Load "
-gui, systemMonitor:add, text, xp y+0 +right vcontrol_memFree, % "Load...."
+gui, systemMonitor:add, text, x+4    w60 +center vcontrol_memUsed
+gui, systemMonitor:add, text, xp y+0 w60 +center vcontrol_memFree
 
 gui, systemMonitor:add, text, x+5 y6 0x7 h26 w2 ; Delimeter (MEM)
 
 gui, systemMonitor:Font, s10 Normal cDDDDDD, Consolas
 gui, systemMonitor:add, text, x+4 y4 +center w50, % "Up Time"
 gui, systemMonitor:Font, s9 Bold c9F9F9F, Consolas
-gui, systemMonitor:add, text, xp y+0 +center w50 vcontrol_upTime, % formatUpTime(secondsToTime(A_TickCount // 1000))
+gui, systemMonitor:add, text, xp y+0 +center w50 vcontrol_upTime
+
+updateCurrentLang()
+updateTimeMonitorInfo()
+updateDataMonitorInfo()
 
 gui, systemMonitor:Show, % "NA x" config.data.positionX " y" config.data.positionY
 
-updateCurrentLang()
-updateDataMonitorInfo()
-
-if (EmptyMemory)
+if (config.data.emptyMemory)
 {
 	setTimer, emptyMemory, % 7 * 60 * 1000
 }
-SetTimer, updateTimeMonitorInfo, 1000
+SetTimer, updateTimeMonitorInfo, 50
 setTimer, updateDataMonitorInfo, 850
 setTimer, updateCurrentLang, 150
 return
@@ -242,8 +243,9 @@ updateCurrentLang()
 
 	if (prevLangCode != (curLangCode := getCurrentLangCode()))
 	{
+		langName := getLangNameByCode(curLangCode)
+		guiControlSetText("systemMonitor:", "control_lang", langName)
 		prevLangCode := curLangCode
-		GuiControl, systemMonitor:, control_lang, % getLangNameByCode(curLangCode)
 	}
 }
 
@@ -251,15 +253,15 @@ updateTimeMonitorInfo()
 {
 	; Uptime
 	upTimeData     := secondsToTime(A_TickCount // 1000) ; {days, hours, minutes, seconds}
-	upTimeFormated := formatUpTime(upTimeData)
+	upTimeFormatted := formatUpTime(upTimeData)
 
-	GuiControl, systemMonitor:, control_upTime, % upTimeFormated
+	guiControlSetText("systemMonitor:", "control_upTime", upTimeFormatted)
 
 	; Date and Time
 	FormatTime, date,, % "MMM dd, ddd"
 	FormatTime, time,, % "hh:mm:ss tt"
 
-	GuiControl, systemMonitor:, control_dateAndTime, % date "`n" time
+	guiControlSetText("systemMonitor:", "control_dateAndTime", date "`n" time)
 }
 
 updateDataMonitorInfo()
@@ -268,21 +270,21 @@ updateDataMonitorInfo()
 	gpuInfo := getGpuInfo() ; {temp, load, memory {total, avail, use, load}}
 
 	GuiControl, % "systemMonitor:+c" getLoadColor(gpuInfo.load, "GPU") " +Redraw", control_gpuLoad
-	GuiControl, systemMonitor:, control_gpuLoad, % gpuInfo.load " %"
-	GuiControl, systemMonitor:, control_gpuTemp, % gpuInfo.temp "°C"
+	guiControlSetText("systemMonitor:", "control_gpuLoad", gpuInfo.load (gpuInfo.load == 100 ? "" : A_Space) "%")
+	guiControlSetText("systemMonitor:", "control_gpuTemp", gpuInfo.temp "°C")
 
 	; CPU INFO
-	cpuLoad := Round(getCPULoad())
+	cpuLoad := getCPULoad()
 
 	GuiControl, % "systemMonitor:+c" getLoadColor(cpuLoad, "CPU") " +Redraw", control_cpuLoad
-	GuiControl, systemMonitor:, control_cpuLoad, % (cpuLoad ? cpuLoad "%" : "Load")
+	guiControlSetText("systemMonitor:", "control_cpuLoad", (cpuLoad != "" ? Round(cpuLoad, (cpuLoad < 10)) "%" : "Load"))
 
 	; Memory INFO
 	memoryInfo := globalMemoryStatusEx() ; {avail, total, load}
 
 	GuiControl, % "systemMonitor:+c" getLoadColor(memoryInfo.load, "MEM") " +Redraw", control_memUsed
-	GuiControl, systemMonitor:, control_memUsed, % memoryInfo.load " %"
-	GuiControl, systemMonitor:, control_memFree, % autoByteFormat(memoryInfo.avail)
+	guiControlSetText("systemMonitor:", "control_memUsed", round(memoryInfo.load, 2) " %")
+	guiControlSetText("systemMonitor:", "control_memFree", autoByteFormat(memoryInfo.avail))
 }
 
 formatUpTime(upTimeData)
