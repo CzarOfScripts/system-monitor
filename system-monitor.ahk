@@ -51,6 +51,7 @@ menu, tray, Default, % "Close script"
 onExit("closeScript")
 
 global config
+global hGuiSystemMonitor
 
 loadColorDefault := {}
 loadColorDefault.GPU := {0: "9F9F9F", 40: "FFD700", 80: "DC4242"}
@@ -84,7 +85,7 @@ getCPULoad()
 FormatTime, date,, % "MMM dd, ddd"
 FormatTime, time,, % "hh:mm:ss tt"
 
-gui, % "systemMonitor:-caption +ToolWindow +LastFound" (config.data.alwayOnTop ? "+AlwaysOnTop" : "")
+gui, % "systemMonitor:-caption +ToolWindow hwndhGuiSystemMonitor +LastFound" (config.data.alwayOnTop ? "+AlwaysOnTop" : "")
 gui, systemMonitor:Margin, 5, 5
 gui, systemMonitor:Color, 090909, 252525
 
@@ -183,6 +184,20 @@ selectSettingsItem(itemName)
 	}
 }
 
+WM_MOVING(wParam, lParam, msg, hwnd)
+{
+	static init := OnMessage(0x0216, "WM_MOVING")
+
+	pos := {left: NumGet(lParam + 0, "Int"), top: NumGet(lParam + 4, "Int"), right: NumGet(lParam + 8, "Int"), bottom: NumGet(lParam + 12, "Int")}
+
+	if (hwnd == hGuiSystemMonitor && config.data.allowMove)
+	{
+		config.data.positionX := pos.left
+		config.data.positionY := pos.top
+
+		config.save()
+	}
+}
 
 WM_RBUTTONDOWN()
 {
