@@ -6,9 +6,9 @@
 SetBatchLines, -1
 SetWorkingDir %A_ScriptDir%
 #NoEnv
-
-;* Includes
-#Include ./library/Others/darkTray.ahk
+#Include ./library/Objects/objectMerge.ahk
+#Include ./library/Objects/objectClone.ahk
+#Include ./library/Class/JSON.ahk
 #Include ./library/Class/ConfigLoader.ahk
 #Include ./library/Class/NvAPI.ahk
 #Include ./library/Memory/freeMemory.ahk
@@ -18,38 +18,8 @@ SetWorkingDir %A_ScriptDir%
 #Include ./library/Keyboard/getCurrentLangCode.ahk
 #Include ./library/Keyboard/getLangNameByCode.ahk
 #Include ./library/Others/secondsToTime.ahk
-#Include ./library/Gui/guiControlSetText.ahk
-#Include ./library/VA.ahk
 
-
-;* Menu Tray
-menu, tray, NoStandard
-
-menu, tray, icon, shell32.dll, 22
-
-menu, contacts, Add , % "Czar Of Scripts | My site"            , authorSite
-menu, contacts, Add , % "Czar Of Scripts | I'm in VK"          , authorVK
-menu, contacts, Add , % "Czar Of Scripts | I'm on Cheat-Master", authorCM
-menu, contacts, Icon, % "Czar Of Scripts | My site"            , shell32.dll, 264
-menu, contacts, Icon, % "Czar Of Scripts | I'm in VK"          , shell32.dll, 264
-menu, contacts, Icon, % "Czar Of Scripts | I'm on Cheat-Master", shell32.dll, 264
-
-menu, tray, tip, % "System Monitor"
-menu, tray, add    , % "Empty memory"  , selectSettingsItem
-menu, tray, add    , % "Allow move"    , selectSettingsItem
-menu, tray, add    , % "Always On Top" , selectSettingsItem
-menu, tray, add    , % "Hide tray icon", selectSettingsItem
-menu, tray, add
-menu, tray, Add    , % "Contacts"      , :Contacts
-menu, tray, Icon   , % "Contacts"      , shell32.dll, 161
-menu, tray, add
-menu, tray, Add    , % "Close script"  , closeScript
-menu, tray, Icon   , % "Close script"  , shell32.dll, 132
-menu, tray, Default, % "Close script"
-
-
-
-onExit("closeScript")
+onExit("scriptClose")
 
 global config
 
@@ -68,16 +38,9 @@ defaultConfig := {emptyMemory: true
 
 config := new ConfigLoader("config.json", defaultConfig)
 
-
-menu, tray, % (config.data.emptyMemory  ? "check" : "uncheck"), % "Empty memory"
-menu, tray, % (config.data.allowMove    ? "check" : "uncheck"), % "Allow move"
-menu, tray, % (config.data.alwaysOnTop  ? "check" : "uncheck"), % "Always On Top"
-menu, tray, % (config.data.hideTrayIcon ? "check" : "uncheck"), % "Hide tray icon"
-
-
 if (config.data.hideTrayIcon)
 {
-	menu, tray, NoIcon
+	Menu, Tray, NoIcon
 }
 
 getCPULoad()
@@ -121,7 +84,7 @@ gui, systemMonitor:add, text, x+4 y7, % "MEM"
 
 gui, systemMonitor:Font, s9 Bold c9F9F9F, Consolas
 gui, systemMonitor:add, text, x+4 y5 +right cDDDDDD, % "Used:`nFree:"
-gui, systemMonitor:add, text, x+4 vcontrol_memUsed, % "LoadÂ "
+gui, systemMonitor:add, text, x+4 vcontrol_memUsed, % "Load "
 gui, systemMonitor:add, text, xp y+0 +right vcontrol_memFree, % "Load...."
 
 gui, systemMonitor:add, text, x+5 y6 0x7 h26 w2 ; Delimeter (MEM)
@@ -140,71 +103,12 @@ if (EmptyMemory)
 {
 	setTimer, emptyMemory, % 7 * 60 * 1000
 }
-SetTimer, updateTimeMonitorInfo, 50
+SetTimer, updateTimeMonitorInfo, 1000
 setTimer, updateDataMonitorInfo, 850
 setTimer, updateCurrentLang, 150
 return
 
 
-selectSettingsItem(itemName)
-{
-	switch (itemName)
-	{
-		case "Empty memory":
-		{
-			config.data.emptyMemory := !config.data.emptyMemory
-			config.save()
-
-			menu, tray, % (config.data.emptyMemory ? "check" : "uncheck"), % itemName
-			setTimer, emptyMemory, % (config.data.emptyMemory ? 7 * 60 * 1000 : "off")
-		}
-		case "Allow move":
-		{
-			config.data.allowMove := !config.data.allowMove
-			config.save()
-
-			menu, tray, % (config.data.allowMove ? "check" : "uncheck"), % itemName
-		}
-		case "Always On Top":
-		{
-			config.data.alwaysOnTop := !config.data.alwaysOnTop
-			config.save()
-
-			menu, tray, % (config.data.alwaysOnTop ? "check" : "uncheck"), % itemName
-			gui, % "systemMonitor:" (config.data.alwaysOnTop ? "+" : "-") "AlwaysOnTop"
-		}
-		case "Hide tray icon":
-		{
-			config.data.hideTrayIcon := !config.data.hideTrayIcon
-			config.save()
-
-			menu, tray, % (config.data.hideTrayIcon ? "check" : "uncheck"), % itemName
-			menu, tray, % (config.data.hideTrayIcon ? "NoIcon" : "Icon")
-		}
-	}
-}
-
-WM_MOVING(wParam, lParam, msg, hwnd)
-{
-	static init := OnMessage(0x0216, "WM_MOVING")
-
-	pos := {left: NumGet(lParam + 0, "Int"), top: NumGet(lParam + 4, "Int"), right: NumGet(lParam + 8, "Int"), bottom: NumGet(lParam + 12, "Int")}
-
-	if (hwnd == hGuiSystemMonitor && config.data.allowMove)
-	{
-		config.data.positionX := pos.left
-		config.data.positionY := pos.top
-
-		config.save()
-	}
-}
-
-WM_RBUTTONDOWN()
-{
-	static init := OnMessage(0x0204, "WM_RBUTTONDOWN")
-
-	menu, tray, show
-}
 
 WM_LBUTTONDOWN()
 {
@@ -269,7 +173,7 @@ updateDataMonitorInfo()
 
 	GuiControl, % "systemMonitor:+c" getLoadColor(gpuInfo.load, "GPU") " +Redraw", control_gpuLoad
 	GuiControl, systemMonitor:, control_gpuLoad, % gpuInfo.load " %"
-	GuiControl, systemMonitor:, control_gpuTemp, % gpuInfo.temp "Â°C"
+	GuiControl, systemMonitor:, control_gpuTemp, % gpuInfo.temp "°C"
 
 	; CPU INFO
 	cpuLoad := Round(getCPULoad())
@@ -320,24 +224,15 @@ getGpuInfo()
 	return gpuInfo
 }
 
-
-
-authorSite()
+scriptClose()
 {
-	run, % "https://CzarOfScripts.com"
-}
+	Gui, systemMonitor:+LastFound
 
-authorVK()
-{
-	run, % "https://vk.com/id173241815"
-}
+	WinGetPos, x, y
+	config.data.positionX := x
+	config.data.positionY := y
 
-authorCM()
-{
-	run, % "https://cheat-master.ru/index/8-459193"
-}
+	config.save()
 
-closeScript(exitReason, exitCode)
-{
 	exitApp
 }
